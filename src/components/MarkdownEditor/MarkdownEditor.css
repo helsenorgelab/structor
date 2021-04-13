@@ -1,3 +1,8 @@
 .ck-content {
     white-space: break-spaces;
 }
+
+.markdown-preview {
+    border: solid 1px #c0d7dc;
+    padding: 10px;
+}

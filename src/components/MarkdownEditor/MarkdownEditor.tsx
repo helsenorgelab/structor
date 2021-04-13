@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 // @ts-ignore
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 // @ts-ignore
 import Editor from '@helsenorge/ckeditor5-build-markdown';
+import ReactMarkdown from 'react-markdown';
 
 import './MarkdownEditor.css';
 
@@ -16,6 +17,16 @@ interface MarkdownEditorProps {
 
 const MarkdownEditor = (props: MarkdownEditorProps): JSX.Element => {
     const [value, setValue] = useState<string>(props.data);
+    const [editMode, setEditMode] = useState(false);
+    const ckEditorRef = useRef(null);
+
+    useEffect(() => {
+        if (editMode) {
+            // @ts-ignore
+            ckEditorRef.current?.editor.editing.view.focus();
+        }
+    }, [editMode]);
+
     const handleChange = (event: Event, editor: Editor) => {
         setValue(editor.getData());
     };
@@ -23,6 +34,7 @@ const MarkdownEditor = (props: MarkdownEditorProps): JSX.Element => {
         if (props.onBlur) {
             props.onBlur(editor.getData());
         }
+        setEditMode(false);
     };
 
     const editorConfiguration = {
@@ -44,8 +56,9 @@ const MarkdownEditor = (props: MarkdownEditorProps): JSX.Element => {
         placeholder: props.placeholder || '',
     };
 
-    return (
+    return editMode ? (
         <CKEditor
+            ref={ckEditorRef}
             data={value}
             onChange={handleChange}
             onBlur={handleBlur}
@@ -53,6 +66,10 @@ const MarkdownEditor = (props: MarkdownEditorProps): JSX.Element => {
             config={editorConfiguration}
             disabled={props.disabled}
         />
+    ) : (
+        <div className="markdown-preview" onClick={() => setEditMode(true)}>
+            <ReactMarkdown>{value}</ReactMarkdown>
+        </div>
     );
 };
 
