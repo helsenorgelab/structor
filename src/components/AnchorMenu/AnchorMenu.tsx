@@ -1,13 +1,19 @@
 import './AnchorMenu.css';
 
-import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import React from 'react';
-
-import SubAnchor from './SubAnchor';
 import { ActionType, Items, OrderItem } from '../../store/treeStore/treeStore';
 import { IQuestionnaireItemType } from '../../types/IQuestionnareItemType';
-import { newItemAction, reorderItemAction } from '../../store/treeStore/treeActions';
+import {
+    moveItemAction,
+    newItemAction,
+    reorderItemAction,
+    updateMarkedLinkIdAction,
+} from '../../store/treeStore/treeActions';
 import { ValidationErrors } from '../../helpers/orphanValidation';
+import SortableTree from '@nosferatu500/react-sortable-tree';
+import '@nosferatu500/react-sortable-tree/style.css';
+import { isIgnorableItem, isItemControlInline } from '../../helpers/itemControl';
+import { generateItemButtons } from './ItemButtons/ItemButtons';
 
 interface AnchorMenuProps {
     qOrder: OrderItem[];
@@ -16,43 +22,161 @@ interface AnchorMenuProps {
     dispatch: React.Dispatch<ActionType>;
 }
 
+interface Node {
+    title: string;
+    hierarchy: string;
+    children: Node[];
+}
+
+interface ExtendedNode {
+    node: Node;
+    path: string[];
+}
+
+interface NodeMoveEvent {
+    treeData: Node[];
+    nextParentNode: Node;
+    node: Node;
+    nextPath: string[];
+    prevPath: string[];
+}
+
+interface NodeVisibilityToggleEvent {
+    node: Node;
+    expanded: boolean;
+}
+
 const AnchorMenu = (props: AnchorMenuProps): JSX.Element => {
-    const dispatchNewRootItem = () => {
-        props.dispatch(newItemAction(IQuestionnaireItemType.group, []));
+    const [collapsedNodes, setCollapsedNodes] = React.useState<string[]>([]);
+
+    const mapToTreeData = (item: OrderItem[], hierarchy: string, parentLinkId?: string): Node[] => {
+        return item
+            .filter((x) => {
+                const parentItem = parentLinkId ? props.qItems[parentLinkId] : undefined;
+                return !isIgnorableItem(props.qItems[x.linkId], parentItem);
+            })
+            .map((x, index) => {
+                const newHierarchy = `${hierarchy}${index + 1}.`;
+                return {
+                    title: x.linkId,
+                    hierarchy: newHierarchy,
+                    children: mapToTreeData(x.items, newHierarchy, x.linkId),
+                    expanded: collapsedNodes.indexOf(x.linkId) === -1,
+                };
+            });
     };
 
-    const dispatchReorderItem = (linkId: string, newIndex: number, order: string[] = []) => {
-        props.dispatch(reorderItemAction(linkId, order, newIndex));
+    const getNodeKey = (extendedNode: ExtendedNode): string => {
+        return extendedNode.node.title;
     };
 
-    const handleChange = (result: DropResult) => {
-        if (!result.destination || !result.draggableId) {
-            return;
+    const canCreateChild = (linkId: string): boolean => {
+        const item = props.qItems[linkId];
+        return item.type !== IQuestionnaireItemType.display && !isItemControlInline(item);
+    };
+
+    const treePathToOrderArray = (treePath: string[]): string[] => {
+        const newPath = [...treePath];
+        newPath.splice(-1);
+        return newPath;
+    };
+
+    const hasValidationError = (linkId: string): boolean => {
+        return props.validationErrors.some((error) => error.linkId === linkId);
+    };
+
+    const getRelevantIcon = (type: string) => {
+        switch (type) {
+            case IQuestionnaireItemType.group:
+                return 'folder-icon';
+            case IQuestionnaireItemType.display:
+                return 'message-icon';
+            default:
+                return 'question-icon';
         }
-
-        const order = JSON.parse(result.type);
-        dispatchReorderItem(result.draggableId, result.destination.index, order);
     };
 
+    const orderTreeData = mapToTreeData(props.qOrder, '');
     return (
         <div className="questionnaire-overview">
-            <DragDropContext onDragEnd={handleChange}>
-                <SubAnchor
-                    items={props.qOrder}
-                    parentItem="draggable"
-                    qItems={props.qItems}
-                    parentArray={[]}
-                    parentQuestionNumber=""
-                    validationErrors={props.validationErrors}
+            {props.qOrder.length > 0 && (
+                <SortableTree
+                    treeData={orderTreeData}
+                    onChange={() => {
+                        /* dummy */
+                    }}
+                    getNodeKey={getNodeKey}
+                    onMoveNode={({ treeData, nextParentNode, node, nextPath, prevPath }: NodeMoveEvent) => {
+                        const newPath = treePathToOrderArray(nextPath);
+                        const oldPath = treePathToOrderArray(prevPath);
+                        // find parent node:
+                        const moveIndex = nextParentNode
+                            ? nextParentNode.children.findIndex((x: Node) => x.title === node.title)
+                            : treeData.findIndex((x: Node) => x.title === node.title);
+
+                        // reorder within same parent
+                        if (JSON.stringify(newPath) === JSON.stringify(oldPath)) {
+                            props.dispatch(reorderItemAction(node.title, newPath, moveIndex));
+                        } else {
+                            props.dispatch(moveItemAction(node.title, newPath, oldPath, moveIndex));
+                        }
+                    }}
+                    onVisibilityToggle={({ node, expanded }: NodeVisibilityToggleEvent) => {
+                        const filteredNodes = collapsedNodes.filter((x) => x !== node.title);
+                        if (!expanded) {
+                            filteredNodes.push(node.title);
+                        }
+                        setCollapsedNodes(filteredNodes);
+                    }}
+                    canNodeHaveChildren={(node: Node): boolean => {
+                        return canCreateChild(node.title);
+                    }}
+                    generateNodeProps={(extendedNode: ExtendedNode) => ({
+                        className: `anchor-menu__item ${
+                            hasValidationError(extendedNode.node.title) ? 'validation-error' : ''
+                        }`,
+                        title: (
+                            <span
+                                className="anchor-menu__inneritem"
+                                onClick={() => {
+                                    props.dispatch(
+                                        updateMarkedLinkIdAction(
+                                            extendedNode.node.title,
+                                            treePathToOrderArray(extendedNode.path),
+                                        ),
+                                    );
+                                }}
+                            >
+                                <span className={getRelevantIcon(props.qItems[extendedNode.node.title].type)} />
+                                <span className="anchor-menu__title">
+                                    {extendedNode.node.hierarchy}
+                                    {` `}
+                                    {props.qItems[extendedNode.node.title].text}
+                                </span>
+                            </span>
+                        ),
+                        buttons: generateItemButtons(
+                            props.qItems[extendedNode.node.title],
+                            treePathToOrderArray(extendedNode.path),
+                            false,
+                            props.dispatch,
+                        ),
+                    })}
                 />
-            </DragDropContext>
+            )}
+
             {props.qOrder.length === 0 && (
                 <p className="center-text" style={{ padding: '0px 25px' }}>
                     Her vil du finne en oversikt over elementene i skjemaet.
                 </p>
             )}
             <div className="floating-button">
-                <button className="new-item-button" onClick={dispatchNewRootItem}>
+                <button
+                    className="new-item-button"
+                    onClick={() => {
+                        props.dispatch(newItemAction(IQuestionnaireItemType.group, []));
+                    }}
+                >
                     <i className="add-icon large" aria-label="add element" title="Opprett element" />
                     Legg til element på toppnivå
                 </button>
@@ -61,20 +185,4 @@ const AnchorMenu = (props: AnchorMenuProps): JSX.Element => {
     );
 };
 
-export default React.memo(AnchorMenu, (prevProps: AnchorMenuProps, nextProps: AnchorMenuProps) => {
-    const isOrderEqual = JSON.stringify(prevProps.qOrder) === JSON.stringify(nextProps.qOrder);
-    const areItemsEqual =
-        JSON.stringify(
-            Object.keys(prevProps.qItems).map(
-                (key: string) => `${prevProps.qItems[key].text}${prevProps.qItems[key].type}`,
-            ),
-        ) ===
-        JSON.stringify(
-            Object.keys(nextProps.qItems).map(
-                (key: string) => `${nextProps.qItems[key].text}${nextProps.qItems[key].type}`,
-            ),
-        );
-    const areValidationErrors =
-        JSON.stringify(prevProps.validationErrors) === JSON.stringify(nextProps.validationErrors);
-    return isOrderEqual && areItemsEqual && areValidationErrors;
-});
+export default AnchorMenu;

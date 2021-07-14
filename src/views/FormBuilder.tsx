@@ -107,7 +107,6 @@ const FormBuilder = (): JSX.Element => {
                 validationErrors={validationErrors}
                 setValidationErrors={setValidationErrors}
             />
-
             {suggestRestore && (
                 <Confirm
                     onConfirm={() => {
@@ -124,7 +123,6 @@ const FormBuilder = (): JSX.Element => {
                     {getConfirmRestoreContent()}
                 </Confirm>
             )}
-
             {displayVerifyReset && (
                 <Confirm
                     onConfirm={() => {
@@ -141,7 +139,6 @@ const FormBuilder = (): JSX.Element => {
                     (Endringene vil gå tapt)
                 </Confirm>
             )}
-
             {isLoading && (
                 <Modal>
                     <div className="align-everything">
@@ -150,7 +147,6 @@ const FormBuilder = (): JSX.Element => {
                     <p className="center-text">Leser inn skjema...</p>
                 </Modal>
             )}
-
             <div className="editor">
                 <input
                     type="file"
@@ -171,29 +167,29 @@ const FormBuilder = (): JSX.Element => {
                         language={state.qMetadata.language}
                     />
                 )}
-                <div className="page-wrapper">
-                    <div className="details-button">
-                        <IconBtn
-                            type="info"
-                            title="Skjemadetaljer"
-                            color="black"
-                            onClick={toggleFormDetails}
-                            size="large"
-                        />
-                    </div>
-                    <FormDetailsDrawer
-                        setTranslateLang={(language: string) => {
-                            setTranslateLang(language);
-                            toggleFormDetails();
-                        }}
-                        closeDrawer={toggleFormDetails}
-                        isOpen={showFormDetails}
-                    />
-                    <QuestionDrawer validationErrors={validationErrors} />
-                </div>
                 {translateLang && (
                     <TranslationModal close={() => setTranslateLang('')} targetLanguage={translateLang} />
                 )}
+            </div>
+            <div className="page-wrapper">
+                <div className="details-button">
+                    <IconBtn
+                        type="info"
+                        title="Skjemadetaljer"
+                        color="black"
+                        onClick={toggleFormDetails}
+                        size="large"
+                    />
+                </div>
+                <FormDetailsDrawer
+                    setTranslateLang={(language: string) => {
+                        setTranslateLang(language);
+                        toggleFormDetails();
+                    }}
+                    closeDrawer={toggleFormDetails}
+                    isOpen={showFormDetails}
+                />
+                <QuestionDrawer validationErrors={validationErrors} />
             </div>
         </>
     );

@@ -267,6 +267,11 @@ const Question = (props: QuestionProps): JSX.Element => {
         );
     };
 
+    const getHighlightExtensionValue = () => {
+        const hasItemControl = props.item.extension?.find((x) => x.url === IExtentionType.itemControl);
+        return hasItemControl?.valueCodeableConcept?.coding?.find((x) => x.code === ItemControlType.highlight);
+    };
+
     const enableWhenCount =
         props.item.enableWhen && props.item.enableWhen.length > 0 ? `(${props.item.enableWhen?.length})` : '';
 
@@ -293,6 +298,33 @@ const Question = (props: QuestionProps): JSX.Element => {
                                 />
                             </div>
                         )}
+                    {(props.item.type === IQuestionnaireItemType.display || !!getHighlightExtensionValue()) && (
+                        <div className="form-field ">
+                            <SwitchBtn
+                                label="Highlight"
+                                initial
+                                value={!!getHighlightExtensionValue() || false}
+                                onChange={() => {
+                                    if (getHighlightExtensionValue()) {
+                                        removeItemExtension(props.item, IExtentionType.itemControl, props.dispatch);
+                                    } else {
+                                        const extension = {
+                                            url: IExtentionType.itemControl,
+                                            valueCodeableConcept: {
+                                                coding: [
+                                                    {
+                                                        system: IValueSetSystem.itemControlValueSet,
+                                                        code: ItemControlType.highlight,
+                                                    },
+                                                ],
+                                            },
+                                        };
+                                        setItemExtension(props.item, extension, props.dispatch);
+                                    }
+                                }}
+                            />
+                        </div>
+                    )}
                     <div className="form-field">
                         <SwitchBtn
                             label="Tekstformatering"

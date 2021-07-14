@@ -3,7 +3,8 @@
     margin-top: 80px;
     margin-left: auto;
     margin-right: auto;
-    width: 70%;
+    max-width: 70%;
+    flex: 1;
 }
 
 .anchor-menu {
@@ -15,10 +16,29 @@
     min-height: calc(100vh - 52px);
     max-height: calc(100vh - 52px);
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-    opacity: .6;
-    transition: opacity .3s ease-in-out;
+    opacity: 0.6;
+    transition: opacity 0.3s ease-in-out;
     position: fixed;
     overflow-y: auto;
+}
+
+.anchor-menu__item:hover .item-button {
+    visibility: visible;
+}
+
+.anchor-menu__inneritem {
+    display: flex;
+    max-width: 600px;
+    padding: 0.5rem;
+    cursor: pointer;
+}
+.anchor-menu__inneritem:hover {
+    background-color: #e4e4e4;
+}
+
+.anchor-menu__title {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .anchor-menu:hover {
@@ -43,29 +63,29 @@
 
 .folder-icon {
     height: 25px;
-    width: 25px;
     min-width: 25px;
-    background: url("../../images/icons/folder-outline.svg") no-repeat center;
+    margin-right: 0.5rem;
+    background: url('../../images/icons/folder-outline.svg') no-repeat center;
 }
 
 .message-icon {
     height: 25px;
-    width: 25px;
     min-width: 25px;
-    background: url("../../images/icons/information-circle-outline.svg") no-repeat center;
+    margin-right: 0.5rem;
+    background: url('../../images/icons/information-circle-outline.svg') no-repeat center;
 }
 
 .question-icon {
     height: 25px;
-    width: 25px;
     min-width: 25px;
-    background: url("../../images/icons/help-circle-outline.svg") no-repeat center;
+    margin-right: 0.5rem;
+    background: url('../../images/icons/help-circle-outline.svg') no-repeat center;
 }
 
 .anchor-content {
     padding: 16px;
     display: flex;
-    align-items: center; 
+    align-items: center;
 }
 
 .add-icon.large {

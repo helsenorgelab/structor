@@ -202,6 +202,7 @@ export interface MoveItemAction {
     linkId: string;
     oldOrder: string[];
     newOrder: string[];
+    index?: number;
 }
 
 export interface UpdateValueSetAction {
@@ -522,12 +523,18 @@ export const reorderItemAction = (linkId: string, order: Array<string>, newIndex
     };
 };
 
-export const moveItemAction = (linkId: string, newOrder: string[], oldOrder: string[]): MoveItemAction => {
+export const moveItemAction = (
+    linkId: string,
+    newOrder: string[],
+    oldOrder: string[],
+    index?: number,
+): MoveItemAction => {
     return {
         type: MOVE_ITEM_ACTION,
         linkId,
         newOrder,
         oldOrder,
+        index,
     };
 };
 

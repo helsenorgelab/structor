@@ -298,6 +298,10 @@ export const EnrichmentSet: Options = {
             display: 'På vegne av innbygger',
             options: [
                 makeOption(
+                    'Fylles skjema ut på vegne av noen andre? (true/false)',
+                    "iif(%representative.relationship.coding.where(system = 'http://hl7.org/fhir/v3/RoleCode' and (code = 'PRN' or code = 'GRANTEE')).count() > 0, true, false)",
+                ),
+                makeOption(
                     'På vegne av innbygger (Fødselsnummer)',
                     "RelatedPerson.identifier.where(use = 'official' and (system = 'urn:oid:2.16.578.1.12.4.1.4.1' or system = 'urn:oid:2.16.578.1.12.4.1.4.2')).value",
                 ),

@@ -5,11 +5,9 @@ import './App.css';
 
 function App(): JSX.Element {
     return (
-        <div className="App">
-            <Router>
-                <Routes />
-            </Router>
-        </div>
+        <Router>
+            <Routes />
+        </Router>
     );
 }
 

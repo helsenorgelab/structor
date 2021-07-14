@@ -1,7 +1,8 @@
 @import '/src/index.css';
 @import 'https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css';
 .editor {
-    padding-bottom: 60px;
+    display: flex;
+    height: 100%;
 }
 
 header {
@@ -41,10 +42,10 @@ h1 {
 .page-wrapper {
     width: 800px;
     margin: 0 auto;
-    padding-top: 80px;
 }
 
-.form-intro-header, .form-intro-field{
+.form-intro-header,
+.form-intro-field {
     text-align: left;
 }
 
@@ -66,12 +67,15 @@ h1 {
     margin-top: 20px;
 }
 
-.form-intro-field input, .form-intro-field label {
+.form-intro-field input,
+.form-intro-field label {
     margin: 10px 70px;
     width: 66%;
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
     padding: 10px;
 }
 

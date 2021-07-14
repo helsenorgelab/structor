@@ -11,7 +11,7 @@ import { useItemNavigation } from '../../hooks/useItemNavigation';
 import { useKeyPress } from '../../hooks/useKeyPress';
 import useOutsideClick from '../../hooks/useOutsideClick';
 import Drawer from '../Drawer/Drawer';
-import ItemButtons, { ItemButtonType } from '../AnchorMenu/ItemButtons/ItemButtons';
+import { generateItemButtons } from '../AnchorMenu/ItemButtons/ItemButtons';
 import { ValidationErrors } from '../../helpers/orphanValidation';
 
 interface Props {
@@ -65,17 +65,7 @@ const QuestionDrawer = ({ validationErrors }: Props): JSX.Element | null => {
                 <div className="item-button-wrapper">
                     {hasNext() && <IconBtn type="forward" title="Neste (Pil høyre)" onClick={next} color="black" />}
                 </div>
-                {item && (
-                    <div className="pull-right">
-                        <ItemButtons
-                            item={item}
-                            parentArray={parentArray}
-                            dispatch={dispatch}
-                            buttons={[ItemButtonType.addChild, ItemButtonType.copy, ItemButtonType.delete]}
-                            showLabel
-                        />
-                    </div>
-                )}
+                {item && <div className="pull-right">{generateItemButtons(item, parentArray, true, dispatch)}</div>}
             </div>
             {itemValidationErrors.length > 0 && (
                 <div className="item-validation-error-summary">

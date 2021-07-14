@@ -6,75 +6,79 @@ import { QuestionnaireItem } from '../../../types/fhir';
 import './ItemButtons.css';
 import { deleteItemAction, duplicateItemAction, newItemAction } from '../../../store/treeStore/treeActions';
 import { IQuestionnaireItemType } from '../../../types/IQuestionnareItemType';
-import { isItemControlInline } from '../../../helpers/itemControl';
+import {
+    isItemControlHelp,
+    isItemControlHighlight,
+    isItemControlInline,
+    isItemControlSidebar,
+} from '../../../helpers/itemControl';
 
-export enum ItemButtonType {
-    addChild = 'addChild',
-    copy = 'copy',
-    delete = 'delete',
-}
-
-type ItemButtonsProps = {
-    item: QuestionnaireItem;
-    parentArray: Array<string>;
-    dispatch: React.Dispatch<ActionType>;
-    buttons?: Array<ItemButtonType>;
-    showLabel?: boolean;
-};
-
-const ItemButtons = (props: ItemButtonsProps): JSX.Element => {
+export const generateItemButtons = (
+    item: QuestionnaireItem,
+    parentArray: Array<string>,
+    showLabel: boolean,
+    dispatch: React.Dispatch<ActionType>,
+): JSX.Element[] => {
     const dispatchDeleteItem = (event: MouseEvent<HTMLButtonElement>): void => {
         event.stopPropagation();
-        props.dispatch(deleteItemAction(props.item.linkId, props.parentArray));
+        dispatch(deleteItemAction(item.linkId, parentArray));
     };
 
     const dispatchAddChildItem = (event: MouseEvent<HTMLButtonElement>): void => {
         event.stopPropagation();
-        props.dispatch(newItemAction(IQuestionnaireItemType.group, [...props.parentArray, props.item.linkId]));
+        dispatch(newItemAction(IQuestionnaireItemType.group, [...parentArray, item.linkId]));
     };
 
     const dispatchDuplicateItem = (event: MouseEvent<HTMLButtonElement>): void => {
         event.stopPropagation();
-        props.dispatch(duplicateItemAction(props.item.linkId, props.parentArray));
+        dispatch(duplicateItemAction(item.linkId, parentArray));
     };
 
-    const canCreateChild = props.item.type !== IQuestionnaireItemType.display && !isItemControlInline(props.item);
-    const displayAddButton = !props.buttons || props.buttons.includes(ItemButtonType.addChild);
-    const displayCopyButton = !props.buttons || props.buttons.includes(ItemButtonType.copy);
-    const displayDeleteButton = !props.buttons || props.buttons.includes(ItemButtonType.delete);
+    const getClassNames = () => {
+        return `item-button ${showLabel ? 'item-button--visible' : ''}`;
+    };
 
-    return (
-        <div className="item-buttons">
-            {displayAddButton && canCreateChild && (
-                <button
-                    className="item-button"
-                    onClick={dispatchAddChildItem}
-                    aria-label="Add child element"
-                    title="Oppfølgingsspørsmål"
-                >
-                    <i className="add-icon" />
-                    {props.showLabel && <label>Opprett oppfølgingsspørsmål</label>}
-                </button>
-            )}
-            {displayCopyButton && (
-                <button
-                    className="item-button"
-                    onClick={dispatchDuplicateItem}
-                    aria-label="Duplicate element"
-                    title="Dupliser"
-                >
-                    <i className="duplicate-icon" />
-                    {props.showLabel && <label>Dupliser</label>}
-                </button>
-            )}
-            {displayDeleteButton && (
-                <button className="item-button" onClick={dispatchDeleteItem} aria-label="Delete element" title="Slett">
-                    <i className="trash-icon" />
-                    {props.showLabel && <label>Slett</label>}
-                </button>
-            )}
-        </div>
-    );
+    const canCreateChild =
+        item.type !== IQuestionnaireItemType.display &&
+        !isItemControlInline(item) &&
+        !isItemControlHighlight(item) &&
+        !isItemControlSidebar(item) &&
+        !isItemControlHelp(item);
+
+    return [
+        ...(canCreateChild
+            ? [
+                  <button
+                      key="new-item-button"
+                      className={getClassNames()}
+                      onClick={dispatchAddChildItem}
+                      aria-label="Add child element"
+                      title="Oppfølgingsspørsmål"
+                  >
+                      <i className="add-icon" />
+                      {showLabel && <label>Opprett oppfølgingsspørsmål</label>}
+                  </button>,
+              ]
+            : []),
+        <button
+            key="duplicate-item-button"
+            className={getClassNames()}
+            onClick={dispatchDuplicateItem}
+            aria-label="Duplicate element"
+            title="Dupliser"
+        >
+            <i className="duplicate-icon" />
+            {showLabel && <label>Dupliser</label>}
+        </button>,
+        <button
+            key="delete-item-button"
+            className={getClassNames()}
+            onClick={dispatchDeleteItem}
+            aria-label="Delete element"
+            title="Slett"
+        >
+            <i className="trash-icon" />
+            {showLabel && <label>Slett</label>}
+        </button>,
+    ];
 };
-
-export default ItemButtons;

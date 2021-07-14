@@ -282,7 +282,11 @@ function moveItem(draft: TreeState, action: MoveItemAction): void {
 
     // find the correct place to move the item
     const arrayToAddItemTo = findTreeArray(action.newOrder, draft.qOrder);
-    arrayToAddItemTo.push({ linkId: action.linkId, items: subTree });
+    if (!action.index && action.index !== 0) {
+        arrayToAddItemTo.push({ linkId: action.linkId, items: subTree });
+    } else {
+        arrayToAddItemTo.splice(action.index, 0, { linkId: action.linkId, items: subTree });
+    }
 
     // delete node from qOrder
     arrayToDeleteItemFrom.splice(indexToDelete, 1);

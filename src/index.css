@@ -31,6 +31,11 @@ iframe {
     border-width: 0;
 }
 
+html {
+    height: 100%;
+    --antd-wave-shadow-color: var(--primary-1) !important;
+}
+
 body {
     margin: 0;
     -webkit-font-smoothing: antialiased;
@@ -56,10 +61,6 @@ code {
     --color-base-3: #f0f0f0;
     /* Section header grey E1E2E4 EEEFF1 */
     /* --color-base-4: #8AB5B5;    Title color */
-}
-
-html {
-    --antd-wave-shadow-color: var(--primary-1) !important;
 }
 
 .controller {
